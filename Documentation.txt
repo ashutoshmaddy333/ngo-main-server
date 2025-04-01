@@ -1,0 +1,758 @@
+# Free Ecosystem Platform API Documentation
+
+## Document Overview
+- **Version:** 1.0.0
+- **Last Updated:** [Current Date]
+- **Project:** Free Ecosystem Marketplace Platform
+
+## Table of Contents
+1. [Introduction](#introduction)
+2. [Authentication APIs](#authentication-apis)
+3. [Listings APIs](#listings-apis)
+4. [Interests APIs](#interests-apis)
+5. [Notifications APIs](#notifications-apis)
+6. [Admin APIs](#admin-apis)
+7. [Error Handling](#error-handling)
+8. [Security Considerations](#security-considerations)
+
+## Introduction
+
+### Purpose
+The Free Ecosystem Platform API provides a comprehensive backend service for a multi-purpose marketplace platform, supporting various listing types, user interactions, and administrative management.
+
+### Base URL
+```
+https://api.freecosystem.com/v1
+```
+
+### Authentication
+All protected endpoints require a valid JWT token passed in the Authorization header:
+```
+Authorization: Bearer [YOUR_JWT_TOKEN]
+```
+
+## Authentication APIs
+
+### 1. User Registration
+- **Endpoint:** `POST /auth/register`
+- **Description:** Create a new user account with email verification
+
+#### Request Body
+```json
+{
+    "username": "johndoe",
+    "email": "john@example.com",
+    "password": "StrongPassword123!",
+    "firstName": "John",
+    "lastName": "Doe"
+}
+```
+
+#### Response
+- **Success (201):**
+```json
+{
+    "success": true,
+    "message": "User registered. Check your email for OTP verification.",
+    "userId": "unique_user_id"
+}
+```
+
+- **Error Responses:**
+  - `400`: Invalid input
+  - `409`: User already exists
+
+#### Validation Rules
+- Username: 3-50 characters
+- Email: Must be valid email format
+- Password: 
+  - Minimum 8 characters
+  - Must contain uppercase, lowercase, number, special character
+
+### 2. User Login
+- **Endpoint:** `POST /auth/login`
+- **Description:** Authenticate user and generate JWT token
+
+#### Request Body
+```json
+{
+    "email": "john@example.com",
+    "password": "StrongPassword123!"
+}
+```
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "token": "jwt_access_token",
+    "user": {
+        "id": "user_id",
+        "username": "johndoe",
+        "email": "john@example.com",
+        "role": "user"
+    }
+}
+```
+
+- **Error Responses:**
+  - `401`: Invalid credentials
+  - `403`: Account not verified
+
+### 3. OTP Verification
+- **Endpoint:** `POST /auth/verify-otp`
+- **Description:** Verify user account using One-Time Password
+
+#### Request Body
+```json
+{
+    "userId": "unique_user_id",
+    "otp": "123456"
+}
+```
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "message": "Account verified successfully",
+    "token": "jwt_access_token"
+}
+```
+
+- **Error Responses:**
+  - `400`: Invalid or expired OTP
+  - `404`: User not found
+
+### 4. Get User Profile
+- **Endpoint:** `GET /auth/profile`
+- **Description:** Retrieve authenticated user's profile information
+- **Authentication:** Required
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "user": {
+        "username": "johndoe",
+        "email": "john@example.com",
+        "profile": {
+            "firstName": "John",
+            "lastName": "Doe",
+            "phoneNumber": "+1234567890",
+            "address": "123 Main St, Cityville"
+        }
+    }
+}
+```
+
+### 5. Update User Profile
+- **Endpoint:** `PUT /auth/profile`
+- **Description:** Update user profile details
+- **Authentication:** Required
+
+#### Request Body
+```json
+{
+    "firstName": "John",
+    "lastName": "Doe",
+    "phoneNumber": "+1234567890",
+    "address": "123 Main St, Cityville"
+}
+```
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "user": {
+        "username": "johndoe",
+        "profile": {
+            "firstName": "John",
+            "lastName": "Doe",
+            "phoneNumber": "+1234567890",
+            "address": "123 Main St, Cityville"
+        }
+    }
+}
+```
+
+## Listings APIs
+
+### 1. Create Listing
+- **Endpoint:** `POST /listings/:type`
+- **Description:** Create a new listing (Product/Service/Job/Matrimony)
+- **Authentication:** Required
+- **Supported Types:** `product`, `service`, `job`, `matrimony`
+
+#### Request Body (Product Example)
+```json
+{
+    "title": "Vintage Guitar",
+    "description": "Well-maintained vintage acoustic guitar",
+    "price": 500,
+    "category": "Musical Instruments",
+    "condition": "used-good",
+    "images": ["file1.jpg", "file2.jpg"]
+}
+```
+
+#### Response
+- **Success (201):**
+```json
+{
+    "success": true,
+    "data": {
+        "_id": "listing_id",
+        "title": "Vintage Guitar",
+        "user": "user_id",
+        "status": "active"
+    }
+}
+```
+
+### 2. Get Listings
+- **Endpoint:** `GET /listings/:type`
+- **Description:** Retrieve listings with advanced filtering
+
+#### Query Parameters
+- `page`: Page number (default: 1)
+- `limit`: Items per page (default: 10)
+- `search`: Search term
+- `minPrice`: Minimum price filter
+- `maxPrice`: Maximum price filter
+- `status`: Listing status
+- `sortBy`: Sorting field (e.g., "createdAt:desc")
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "count": 10,
+    "totalListings": 50,
+    "totalPages": 5,
+    "currentPage": 1,
+    "data": [
+        {
+            "_id": "listing_id",
+            "title": "Listing Title",
+            "description": "Listing Description",
+            "user": {
+                "username": "seller_username"
+            }
+        }
+    ]
+}
+
+## Listings APIs (Continued)
+
+### 3. Get Single Listing
+- **Endpoint:** `GET /listings/:type/:id`
+- **Description:** Retrieve detailed information about a specific listing
+- **Authentication:** Not required
+
+#### Path Parameters
+- `type`: Listing type (`product`, `service`, `job`, `matrimony`)
+- `id`: Unique listing identifier
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "data": {
+        "_id": "listing_id",
+        "title": "Detailed Listing Title",
+        "description": "Comprehensive listing description",
+        "price": 500,
+        "images": [
+            "/uploads/image1.jpg",
+            "/uploads/image2.jpg"
+        ],
+        "user": {
+            "username": "seller_username",
+            "email": "seller@example.com"
+        },
+        "createdAt": "2024-02-04T12:00:00Z",
+        "status": "active"
+    }
+}
+```
+
+### 4. Update Listing
+- **Endpoint:** `PUT /listings/:type/:id`
+- **Description:** Update an existing listing
+- **Authentication:** Required (User must be listing owner)
+
+#### Request Body (Partial Update Allowed)
+```json
+{
+    "title": "Updated Vintage Guitar",
+    "price": 550,
+    "description": "Updated description with more details"
+}
+```
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "data": {
+        "_id": "listing_id",
+        "title": "Updated Vintage Guitar",
+        "price": 550
+    }
+}
+```
+
+### 5. Delete/Deactivate Listing
+- **Endpoint:** `DELETE /listings/:type/:id`
+- **Description:** Soft delete (deactivate) a listing
+- **Authentication:** Required (User must be listing owner)
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "message": "Listing successfully marked as inactive"
+}
+```
+
+### 6. Search Listings
+- **Endpoint:** `GET /listings/search`
+- **Description:** Advanced search across listing types
+
+#### Query Parameters
+- `query`: Search term
+- `type`: Optional. Specific listing type to search
+- `page`: Pagination page number
+- `limit`: Results per page
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "data": {
+        "product": [
+            {
+                "_id": "product_listing_id",
+                "title": "Matching Product",
+                "type": "product"
+            }
+        ],
+        "service": [
+            {
+                "_id": "service_listing_id",
+                "title": "Matching Service",
+                "type": "service"
+            }
+        ]
+    }
+}
+```
+
+## Interests APIs
+
+### 1. Create Interest
+- **Endpoint:** `POST /interests`
+- **Description:** Express interest in a specific listing
+- **Authentication:** Required
+
+#### Request Body
+```json
+{
+    "listingId": "specific_listing_id",
+    "listingType": "product",
+    "message": "I'm interested in your listing. Can you provide more details?"
+}
+```
+
+#### Response
+- **Success (201):**
+```json
+{
+    "success": true,
+    "data": {
+        "_id": "interest_id",
+        "sender": "user_id",
+        "receiver": "listing_owner_id",
+        "listing": "listing_id",
+        "status": "pending",
+        "message": "I'm interested in your listing."
+    }
+}
+```
+
+### 2. Get Received Interests
+- **Endpoint:** `GET /interests/received`
+- **Description:** Retrieve interests received by the user
+- **Authentication:** Required
+
+#### Query Parameters
+- `page`: Page number
+- `limit`: Interests per page
+- `status`: Filter by interest status (`pending`, `accepted`, `rejected`)
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "count": 10,
+    "totalInterests": 50,
+    "totalPages": 5,
+    "data": [
+        {
+            "_id": "interest_id",
+            "sender": {
+                "username": "interested_user",
+                "email": "interested@example.com"
+            },
+            "listing": {
+                "title": "Listing Title",
+                "type": "product"
+            },
+            "status": "pending",
+            "message": "Interested in your listing"
+        }
+    ]
+}
+```
+
+### 3. Get Sent Interests
+- **Endpoint:** `GET /interests/sent`
+- **Description:** Retrieve interests sent by the user
+- **Authentication:** Required
+
+#### Response Structure
+Similar to Received Interests, but shows interests initiated by the current user
+
+### 4. Respond to Interest
+- **Endpoint:** `PUT /interests/:id/respond`
+- **Description:** Accept or reject an received interest
+- **Authentication:** Required (Must be listing owner)
+
+#### Request Body
+```json
+{
+    "status": "accepted",
+    "responseMessage": "Great! Let's discuss further details."
+}
+```
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "data": {
+        "_id": "interest_id",
+        "status": "accepted",
+        "responseMessage": "Great! Let's discuss further details."
+    }
+}
+```
+
+## Notifications APIs
+
+### 1. Get Notifications
+- **Endpoint:** `GET /notifications`
+- **Description:** Retrieve user's notifications
+- **Authentication:** Required
+
+#### Query Parameters
+- `page`: Page number
+- `limit`: Notifications per page
+- `isRead`: Filter by read status
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "count": 10,
+    "totalNotifications": 50,
+    "totalPages": 5,
+    "data": [
+        {
+            "_id": "notification_id",
+            "type": "interest_received",
+            "content": "New interest received for your listing",
+            "isRead": false,
+            "createdAt": "2024-02-04T12:00:00Z"
+        }
+    ]
+}
+```
+
+### 2. Mark Notifications as Read
+- **Endpoint:** `PUT /notifications/mark-read`
+- **Description:** Mark specific notifications as read
+- **Authentication:** Required
+
+#### Request Body
+```json
+{
+    "notificationIds": ["notification_id1", "notification_id2"]
+}
+```
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "message": "2 notifications marked as read",
+    "modifiedCount": 2
+}
+```
+
+### 3. Get Unread Notification Count
+- **Endpoint:** `GET /notifications/count`
+- **Description:** Retrieve count of unread notifications
+- **Authentication:** Required
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "unreadCount": 5
+}
+
+## Admin APIs
+
+### 1. Get Dashboard Statistics
+- **Endpoint:** `GET /admin/dashboard`
+- **Description:** Retrieve comprehensive system-wide statistics
+- **Authentication:** Required (Admin Only)
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "data": {
+        "totalUsers": 1000,
+        "activeUsers": 750,
+        "totalListings": {
+            "product": 500,
+            "service": 300,
+            "job": 200,
+            "matrimony": 100
+        },
+        "listingStats": {
+            "totalActive": 900,
+            "totalInactive": 200,
+            "totalPending": 50
+        },
+        "userActivity": {
+            "newUsers": 50,
+            "activeListings": 900,
+            "interests": 200
+        }
+    }
+}
+```
+
+### 2. Get Users
+- **Endpoint:** `GET /admin/users`
+- **Description:** Retrieve user list with advanced filtering
+- **Authentication:** Required (Admin Only)
+
+#### Query Parameters
+- `page`: Page number
+- `limit`: Users per page
+- `role`: Filter by user role
+- `isActive`: Filter by active status
+- `search`: Search by username or email
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "count": 10,
+    "totalUsers": 1000,
+    "totalPages": 100,
+    "data": [
+        {
+            "_id": "user_id",
+            "username": "johndoe",
+            "email": "john@example.com",
+            "role": "user",
+            "isActive": true,
+            "createdAt": "2024-01-01T00:00:00Z"
+        }
+    ]
+}
+```
+
+### 3. Bulk User Actions
+- **Endpoint:** `POST /admin/users/bulk`
+- **Description:** Perform bulk actions on users
+- **Authentication:** Required (Admin Only)
+
+#### Request Body
+```json
+{
+    "action": "deactivate",
+    "userIds": ["user_id1", "user_id2", "user_id3"]
+}
+```
+
+#### Supported Actions
+- `activate`: Enable user accounts
+- `deactivate`: Disable user accounts
+- `delete`: Permanently remove users
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "message": "3 users deactivated",
+    "modifiedCount": 3
+}
+```
+
+### 4. Bulk Listing Actions
+- **Endpoint:** `POST /admin/listings/bulk`
+- **Description:** Perform bulk actions on listings
+- **Authentication:** Required (Admin Only)
+
+#### Request Body
+```json
+{
+    "type": "product",
+    "action": "deactivate",
+    "listingIds": ["listing_id1", "listing_id2"]
+}
+```
+
+#### Supported Actions
+- `activate`: Make listings visible
+- `deactivate`: Hide listings
+- `delete`: Permanently remove listings
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "message": "2 product listings deactivated",
+    "modifiedCount": 2
+}
+```
+
+### 5. Update System Configuration
+- **Endpoint:** `PUT /admin/system-config`
+- **Description:** Manage global system settings
+- **Authentication:** Required (Admin Only)
+
+#### Request Body
+```json
+{
+    "maintenanceMode": false,
+    "disclaimerText": "Updated platform usage terms",
+    "termsOfService": "Latest terms of service document"
+}
+```
+
+#### Response
+- **Success (200):**
+```json
+{
+    "success": true,
+    "data": {
+        "maintenanceMode": false,
+        "disclaimerText": "Updated platform usage terms",
+        "termsOfService": "Latest terms of service document"
+    }
+}
+```
+
+## Error Handling
+
+### Standard Error Response Format
+```json
+{
+    "success": false,
+    "message": "Descriptive error message",
+    "error": "Detailed error information (development mode only)"
+}
+```
+
+### Common HTTP Status Codes
+- `200`: Successful request
+- `201`: Resource created
+- `400`: Bad request (validation error)
+- `401`: Unauthorized (authentication required)
+- `403`: Forbidden (insufficient permissions)
+- `404`: Resource not found
+- `500`: Internal server error
+
+### Error Types
+1. **Validation Errors**
+   - Incorrect input format
+   - Missing required fields
+   - Invalid data types
+
+2. **Authentication Errors**
+   - Invalid credentials
+   - Expired token
+   - Insufficient permissions
+
+3. **Resource Errors**
+   - Listing not found
+   - User not authorized to modify resource
+
+## Security Considerations
+
+### Authentication
+- JWT-based authentication
+- Tokens expire after 30 days
+- Secure password hashing (bcrypt)
+- OTP-based account verification
+
+### Data Protection
+- HTTPS encryption
+- Input validation and sanitization
+- Protection against common web vulnerabilities
+- Rate limiting to prevent brute-force attacks
+
+### User Data
+- Passwords never stored in plain text
+- Minimal user information exposed in responses
+- User can control profile visibility
+
+### Listing Privacy
+- Users can only modify their own listings
+- Sensitive information filtered from public views
+
+## Best Practices
+
+1. Always use HTTPS
+2. Keep tokens secure
+3. Implement proper error handling
+4. Use strong, unique passwords
+5. Enable two-factor authentication
+6. Regularly update and patch system
+
+## API Versioning
+- Current Version: v1
+- Base URL: `https://api.freecosystem.com/v1`
+- Future versions will maintain backward compatibility
+
+## Support and Contact
+- Email: support@freecosystem.com
+- API Documentation: [Link to documentation]
+- Terms of Service: [Link to terms]
