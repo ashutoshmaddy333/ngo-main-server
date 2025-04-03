@@ -9,6 +9,7 @@ dotenv.config() // Load environment variables
 
 // Initialize Express
 const app = express()
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 
 // Security Middleware
 app.use(helmet()) // Adds various HTTP headers for security
@@ -22,7 +23,7 @@ const limiter = rateLimit({
 app.use(limiter)
 
 // Middleware
-app.use(cors()) // Enable CORS
+// app.use(cors()) // Enable CORS
 app.use(express.json()) // Body parser for JSON
 app.use(express.urlencoded({ extended: true })) // URL-encoded body parser
 

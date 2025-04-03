@@ -115,7 +115,15 @@ exports.sendEmailNotification = async (user, notificationType, content) => {
       },
       listing_rejected: {
         subject: "Your Ad Has Been Rejected",
-        text: `Your listing has been rejected: ${content}`,
+        text: `Your listing has been rejected: ${content}. Please review and resubmit if needed.`,
+      },
+      listing_created: {
+        subject: "Your Ad Has Been Created",
+        text: `Your listing has been created and is pending approval: ${content}`,
+      },
+      listing_updated: {
+        subject: "Your Ad Has Been Updated",
+        text: `Your listing has been updated: ${content}`,
       },
       message: {
         subject: "New Message",

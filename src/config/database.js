@@ -34,6 +34,7 @@ const connectDB = async () => {
     // Check if super admin exists, if not create one
     const User = require("../models/User")
     const adminExists = await User.findOne({ email: "admin@example.com", role: "admin" })
+    const modExists = await User.findOne({ email: "moderator123@example.com", role: "moderator" })
 
     if (!adminExists) {
       console.log("Creating super admin account...")
@@ -56,6 +57,30 @@ const connectDB = async () => {
 
       console.log("Super admin account created successfully")
     }
+
+
+    if (!modExists) {
+      console.log("Creating moderator account...")
+      const bcrypt = require("bcryptjs")
+      const hashedPassword = await bcrypt.hash("Moderator@1234", 10)
+
+      await User.create({
+        firstName: "Super",
+        lastName: "Moderator",
+        email: "moderator123@example.com",
+        phoneNumber: "9999999999",
+        gender: "Male",
+        pincode: "123456",
+        state: "Delhi",
+        city: "New Delhi",
+        password: hashedPassword,
+        confirmPassword: hashedPassword,
+        role: "moderator",
+      })
+
+      console.log("Super moderator account created successfully")
+    }
+
   } catch (error) {
     console.error(`❌ Connection Failed: ${error.message}`)
   }

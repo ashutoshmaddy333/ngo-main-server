@@ -29,8 +29,23 @@ exports.createListing = async (req, res) => {
     // Add user from authentication middleware
     req.body.user = req.user.id
 
+    // Set initial status to pending for moderation
+    req.body.status = "pending"
+
     const listing = new listingModel(req.body)
     await listing.save()
+
+    // Create notification for the user about pending approval
+    const Notification = require("../models/Notification")
+    await Notification.createNotification({
+      user: req.user.id,
+      type: "listing_created",
+      content: `Your ${type} listing has been created and is pending approval`,
+      relatedEntity: {
+        entityId: listing._id,
+        type: "Listing",
+      },
+    })
 
     res.status(201).json({
       success: true,

@@ -39,5 +39,8 @@ router.post(
   moderatorController.bulkApproveOrRejectListings,
 ) // Bulk approve/reject listings
 
+// Add this new route after the bulk-approve-reject route
+router.get("/listings/all-ids", moderatorMiddleware.ensureModerator, moderatorController.getAllListingIds) // Get all listing IDs for bulk operations
+
 module.exports = router
 

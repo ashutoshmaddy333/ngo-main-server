@@ -471,3 +471,57 @@ exports.bulkApproveOrRejectListings = async (req, res) => {
   }
 }
 
+// Add this new function after bulkApproveOrRejectListings
+
+// @desc    Get all listing IDs for bulk operations
+// @route   GET /api/mod/listings/all-ids
+exports.getAllListingIds = async (req, res) => {
+  try {
+    const type = req.query.type || "all" // 'all', 'product', 'service', 'job', 'matrimony'
+
+    // Define models to query based on type
+    const modelsToQuery =
+      type === "all"
+        ? [
+            { model: require("../models/ProductListing"), name: "product" },
+            { model: require("../models/ServiceListing"), name: "service" },
+            { model: require("../models/JobListing"), name: "job" },
+            { model: require("../models/MatrimonyListing"), name: "matrimony" },
+          ]
+        : [
+            {
+              model: require(`../models/${type.charAt(0).toUpperCase() + type.slice(1)}Listing`),
+              name: type,
+            },
+          ]
+
+    // Get IDs from each model
+    const results = await Promise.all(
+      modelsToQuery.map(async ({ model, name }) => {
+        const items = await model.find().select("_id")
+        return {
+          type: name,
+          ids: items.map((item) => item._id.toString()),
+        }
+      }),
+    )
+
+    // Combine results
+    const allIds = {}
+    results.forEach((result) => {
+      allIds[result.type] = result.ids
+    })
+
+    res.status(200).json({
+      success: true,
+      data: type === "all" ? allIds : allIds[type],
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching listing IDs",
+      error: error.message,
+    })
+  }
+}
+

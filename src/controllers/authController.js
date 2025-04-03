@@ -16,9 +16,10 @@ const transporter = nodemailer.createTransport({
 // @route   POST /api/auth/register
 
 exports.registerUser = async (req, res) => {
-  const { firstName, lastName, email, phoneNumber, gender, pincode, state, city, password, confirmPassword, role } =
+  const { firstName, lastName, email, phoneNumber, gender, pincode, state, city, password, confirmPassword } =
     req.body
 
+    console.log(req.body) 
   // Check if any required field is missing
   // if (!firstName || !lastName || !email || !phoneNumber || !gender || !pincode || !state || !city || !password || !confirmPassword) {
   //     return res.status(400).json({
@@ -66,7 +67,7 @@ exports.registerUser = async (req, res) => {
       confirmPassword: hashedPassword,
       role: "user",
     })
-
+console.log(user)
     // Generate OTP
     const otp = user.generateOTP()
     await user.save()
