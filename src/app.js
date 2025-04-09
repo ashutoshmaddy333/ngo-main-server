@@ -10,7 +10,7 @@ dotenv.config() // Load environment variables
 
 // Initialize Express
 const app = express()
-app.use(cors({ origin: "https://ngo-client-main.vercel.app/", credentials: true }));
+app.use(cors({ origin: "https://ngo-client-main.vercel.app", credentials: true }));
 
 // Security Middleware
 app.use(helmet({
